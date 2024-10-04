@@ -1,6 +1,6 @@
 # Generalized Dimension Reduction Using Semi-Relaxed Gromov-Wasserstein Distance
 
-This code produces the results and figures in the paper _Generalized Dimension Reduction Using Semi-Relaxed Gromov-Wasserstein Distance_.
+This code produces the results and figures in the paper _Generalized Dimension Reduction Using Semi-Relaxed Gromov-Wasserstein Distance_ by Ranthony A. Clark, Tom Needham and Thomas Weighill.
 
 ## Requirements
 
