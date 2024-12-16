@@ -75,7 +75,7 @@ for digit in range(0,10):
             np.random.seed(2024)
             print('SRGW_R2', end ='|')
             start_time = time.time()
-            X['SRGW_R2'], losses = circle_embedders.fit_to_R2_ot_start(M, gamma=0.1, n_points=20, verbose=True, tol=1e-4)
+            X['SRGW_R2'], losses = circle_embedders.fit_to_R2_ot_start(M, gamma=0.1, n_points=20, verbose=False, tol=1e-4)
             times['SRGW_2'] = time.time() - start_time  
         if m == 'PCOH':
             print('PCOH', end ='|')
@@ -99,7 +99,7 @@ for digit in range(0,10):
             print('GD', end ='|')
             np.random.seed(2024)
             start_time = time.time()
-            r['GD'], y['GD'], losses = circle_embedders.fit_to_circle(M, verbose=True, gamma=0.01, tol=1e-4)
+            r['GD'], y['GD'], losses = circle_embedders.fit_to_circle(M, verbose=False, gamma=0.01, tol=1e-4)
             X['GD'] = np.array(
                 [[np.cos(2*np.pi*t), np.sin(2*np.pi*t)] for t in y['GD']]
             )

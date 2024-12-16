@@ -14,21 +14,11 @@ import random
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 import tensorflow as tf
 import tensorflow_probability as tfp
+from dreimac import CircularCoords
 from ot.gromov import semirelaxed_gromov_wasserstein
 
 sys.path.append('../CircularCoordinates/')
 from circularcoordinates import CircCoordLn, weight_ft_0, weight_ft_with_degree_meta, weighted_circular_coordinate
-
-def persistent_cohomology_coords(M):
-    '''
-    M is a distance matrix    
-    
-    returns a radius estimate, coordinates in [0,1] and the distortion 
-    '''
-    r_est = np.max(M) / np.pi
-    y = weighted_circular_coordinate(M, distance_matrix=True)
-    D = distortion(M, y, r_est)
-    return r_est, y, [D]
 
 def weighted_persistent_cohomology_coords(M):
     '''
@@ -37,7 +27,10 @@ def weighted_persistent_cohomology_coords(M):
     returns a radius estimate, coordinates in [0,1] and the distortion 
     '''
     r_est = np.max(M) / np.pi
-    y = weighted_circular_coordinate(M, distance_matrix=True, weight_ft=weight_ft_0(5))
+    y = weighted_circular_coordinate(
+        M, distance_matrix=True,
+        weight_ft=weight_ft_0(2)
+    )
     D = distortion(M, y, r_est)
     return r_est, y, [D]
 
@@ -134,16 +127,6 @@ def fit_to_circle_ot_start(M, num_steps=2000, n_points=100, verbose=False, **kwa
     if verbose:
         print('OT embedding completed.')
     return fit_to_circle(M, initial_x=semiOT_coords, num_steps=num_steps, verbose=verbose, **kwargs)
-
-def plot_on_circle(coords, r=1, **kwargs):
-    '''
-    helpful function for plotting points on a circle based on coordinates
-    '''
-    put_on_circle = r*np.array([np.cos(2*np.pi*coords), np.sin(2*np.pi*coords)]).transpose()
-    plt.gca().scatter(
-        put_on_circle[:,0], put_on_circle[:,1], **kwargs
-    )
-    plt.gca().set_aspect(1)
     
 def couple_to_circle(M, r=None, n_points=100, verbose=False):
     '''

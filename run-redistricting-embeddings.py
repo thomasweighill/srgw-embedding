@@ -1,12 +1,5 @@
-from gerrychain import Graph, Election, updaters, Partition, constraints, MarkovChain
-from gerrychain.updaters import cut_edges
-from gerrychain.random import random
-from gerrychain.proposals import recom
-from gerrychain.tree import recursive_tree_part
-from gerrychain.accept import always_accept
-from gerrychain import random
+from gerrychain import Graph, updaters, Partition
 import numpy as np
-import maup
 from functools import partial
 import matplotlib
 import matplotlib.pyplot as plt
@@ -183,7 +176,7 @@ def load_gdf(statename, level):
 
     return gdf
 
-for statename in ['ME']: #full list is ['ID', 'MT', 'ME', 'WV', 'NH', 'RI']
+for statename in ['ID', 'MT', 'ME', 'WV', 'NH', 'RI']: #full list is ['ID', 'MT', 'ME', 'WV', 'NH', 'RI']
     print(statename, '\n-------\n')
 
     #get the prestored partitions
@@ -213,7 +206,53 @@ for statename in ['ME']: #full list is ['ID', 'MT', 'ME', 'WV', 'NH', 'RI']
     )
     fig1.savefig('redistricting_figures/circle_{}_{}_{}.png'.format(statename, level, tag), bbox_inches='tight', dpi=300)
     fig2.savefig('redistricting_figures/hist_{}_{}_{}.png'.format(statename, level, tag), bbox_inches='tight', dpi=300)
+    plt.close(fig1)
+    plt.close(fig2)
 
+    #also embed using a range of other non-linear reduction techniques
+    X = {}
+
+    from sklearn.manifold import MDS
+    np.random.seed(2024)
+    X['MDS'] = MDS(n_components=2, dissimilarity='precomputed', eps=1e-4, random_state=2024).fit_transform(M)
+
+    from sklearn.manifold import SpectralEmbedding
+    np.random.seed(2024)
+    X['Laplacian'] = SpectralEmbedding(eigen_solver='lobpcg', n_components=2).fit_transform(M)
+
+
+    from sklearn.manifold import Isomap
+    np.random.seed(2024)
+    X['Isomap'] = Isomap(metric='precomputed', n_components=2, tol=1e-4).fit_transform(M)
+
+
+    from sklearn.manifold import TSNE
+    np.random.seed(2024)
+    X['TSNE'] = TSNE(init='random', metric='precomputed', random_state=2024).fit_transform(M)
+
+    from circle_embedders import weighted_persistent_cohomology_coords
+    np.random.seed(2024)
+    _, pcoh_coords, _ = weighted_persistent_cohomology_coords(M) 
+    X['PCOH'] = np.array(
+        [[np.cos(2*np.pi*t), np.sin(2*np.pi*t)] for t in pcoh_coords]
+    )
+
+
+    X['SRGW'] = np.array(
+        [[np.cos(2*np.pi*t), np.sin(2*np.pi*t)] for t in y]
+    )
+
+    #plot
+    for m in X:
+        plt.subplots(figsize=(5,5))
+        plt.scatter(
+            X[m][:,0],
+            X[m][:,1],
+            c=y, s=20, marker='x'
+        )
+        plt.gca().set_aspect(1)
+        plt.savefig('redistricting_figures/ensemble_{}_{}.png'.format(statename, m), bbox_inches='tight', dpi=150)
+        plt.close()
 
 
 

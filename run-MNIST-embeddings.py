@@ -8,6 +8,7 @@ from tqdm import tqdm
 import pickle
 import os
 import time
+import sys
 
 def rotate(image, deg):
     im = Image.fromarray((256*image.reshape(28,28)).astype(np.uint8))
@@ -21,7 +22,7 @@ train, test, valid = mnist_loader.load_data()
 
 #adjust these lists
 R2_methods = ['TSNE', 'PCA', 'MDS', 'SRGW_R2'] #full list is ['TSNE', 'PCA', 'MDS', 'SRGW_R2']
-circle_methods = ['GD', 'SRGW', 'PCOH'] #full list is ['GD', 'SRGW', 'PCOH']
+circle_methods = ['GD', 'SRGW', 'PCOH'] #['GD', 'SRGW', 'PCOH'] #full list is ['GD', 'SRGW', 'PCOH']
 
 for digit in list(range(0,10)):
     np.random.seed(2024)
@@ -50,6 +51,13 @@ for digit in list(range(0,10)):
     times = {}
     
     for m in R2_methods+circle_methods:
+        if m == 'Laplacian':
+            from sklearn.manifold import SpectralEmbedding
+            np.random.seed(2024)
+            print('Laplacian', end ='|')
+            start_time = time.time()
+            X['Laplacian'] = SpectralEmbedding(eigen_solver='lobpcg', n_components=2).fit_transform(newimages)
+            times['Laplacian'] = time.time() - start_time
         if m == 'PCA':
             from sklearn.decomposition import PCA
             np.random.seed(2024)
@@ -75,7 +83,7 @@ for digit in list(range(0,10)):
             np.random.seed(2024)
             print('SRGW_R2', end ='|')
             start_time = time.time()
-            X['SRGW_R2'], losses = circle_embedders.fit_to_R2_ot_start(M, gamma=0.1, n_points=20, verbose=True, tol=1e-4)
+            X['SRGW_R2'], losses = circle_embedders.fit_to_R2_ot_start(M, gamma=0.1, n_points=20, verbose=False, tol=1e-4)
             times['SRGW_R2'] = time.time() - start_time  
         if m == 'PCOH':
             print('PCOH', end ='|')
@@ -99,7 +107,7 @@ for digit in list(range(0,10)):
             print('GD', end ='|')
             np.random.seed(2024)
             start_time = time.time()
-            r['GD'], y['GD'], losses = circle_embedders.fit_to_circle(M, verbose=True, gamma=0.01)
+            r['GD'], y['GD'], losses = circle_embedders.fit_to_circle(M, verbose=False, gamma=0.01)
             X['GD'] = np.array(
                 [[np.cos(2*np.pi*t), np.sin(2*np.pi*t)] for t in y['GD']]
             )
