@@ -20,6 +20,7 @@ from ot.gromov import semirelaxed_gromov_wasserstein
 import geopy
 from geopy import distance
 from math import radians, cos, sin, asin, sqrt
+from mpl_toolkits.mplot3d import proj3d
 
 np.random.seed(2024)
 
@@ -144,38 +145,6 @@ M = np.array(
     ] for x in coords
 ])
 
-'''
-Embed using t-SNE and MDS
-'''
-X = {}
-
-from sklearn.manifold import TSNE
-np.random.seed(2024)
-X['TSNE'] = TSNE(n_components=3, metric='precomputed', perplexity=5, init='random').fit_transform(M)
-
-from sklearn.manifold import MDS
-np.random.seed(2024)
-X['MDS'] = MDS(n_components=3, dissimilarity='precomputed').fit_transform(M)
-
-print('TSNE', end=' ')
-print('{:.3f}'.format(distortion(distance_matrix(X['TSNE'], X['TSNE']), M)))
-print('MDS', end=' ')
-print('{:.3f}'.format(distortion(distance_matrix(X['MDS'], X['MDS']), M)))
-
-'''
-Embed using GD
-'''
-np.random.seed(2024)
-y, losses = fit_to_sphere(M)
-print('GD', end=' ')
-print(np.sqrt(losses[-1])/2)
-# do 10 trials
-# ds = [np.sqrt(losses[-1])/2]
-# for trial in range(9):
-#     y, losses = fit_to_sphere(M)
-#     ds.append(np.sqrt(losses[-1])/2)
-# print("GD distortions over 10 trials:", sorted(ds))
-
 
 '''
 Embed using SRGW
@@ -248,17 +217,25 @@ ax.scatter(
     c='red', s=100
 )
 
+zpos = np.linspace(-r*1.2, r*1.3, sum(visible)) 
+in_order = [15,1,4,8,2,11,9,12,14,13,3,5,10,6,7,0]
+for j, i in enumerate(in_order):
+    label = big_cities['city'][np.where(visible)[0][i]]
+    ax.text(-5500, -4000, zpos[j], label, size=25, horizontalalignment='right', verticalalignment='center')
+    ax.plot(
+        [-5490, xx[np.where(visible)][i]], [-4000, yy[np.where(visible)][i]],
+        [zpos[j], zz[np.where(visible)][i]], c='black'
+    )
 
-for i, (a,b) in enumerate(y):
-    label = big_cities['city'][i]
-    if visible[i]:
-        ax.text(xx[i]+shift[label], yy[i]+shift[label], zz[i], label)
 
+ax.set_xlim(-r*1.2,r*1.01)
+ax.set_ylim(-r*1.01,r*1.01)
+ax.set_zlim(-r*1.01,r*1.01)
+ax.set_xticks([-5000, 0, 5000])
+ax.set_yticks([-5000, 0, 5000])
+ax.set_zticks([-5000, 0, 5000], labels=[])
+ax.tick_params(labelsize=25)
 ax.set_aspect('equal')
-    
-ax.set_xlim(-r*1.1,r*1.1)
-ax.set_ylim(-r*1.1,r*1.1)
-ax.set_zlim(-r*1.1,r*1.1)
 
 
 plt.savefig('sphere_on_sphere1.png', dpi=150, bbox_inches='tight')
@@ -325,17 +302,43 @@ ax.scatter(
     c='red', s=100
 )
 
+zpos = np.linspace(-r*1.1, r*1.5, sum(visible))*7/16
+in_order = [5,0,6,2,3,1,4]
+for j, i in enumerate(in_order):
+    label = big_cities['city'][np.where(visible)[0][i]]
+    ax.text(-5500, -4000, zpos[j], label, size=25, horizontalalignment='right', verticalalignment='center')
+    ax.plot(
+        [-5490, xx[np.where(visible)][i]], [-4000, yy[np.where(visible)][i]],
+        [zpos[j], zz[np.where(visible)][i]], c='black'
+    )
 
-for i, (a,b) in enumerate(y):
-    label = big_cities['city'][i]
-    if visible[i]:
-        ax.text(xx[i], yy[i], zz[i], label)
-
-ax.set_aspect('equal')
     
-ax.set_xlim(-r*1.1,r*1.1)
-ax.set_ylim(-r*1.1,r*1.1)
-ax.set_zlim(-r*1.1,r*1.1)
+ax.set_xlim(-r*1.4,r*1.01)
+ax.set_ylim(-r*1.01,r*1.01)
+ax.set_zlim(-r*1.01,r*1.01)
+ax.set_xticks([-5000, 0, 5000])
+ax.set_yticks([-5000, 0, 5000])
+ax.set_zticks([-5000, 0, 5000])
+ax.tick_params(labelsize=25)
+ax.set_aspect('equal')
 
 
 plt.savefig('sphere_on_sphere2.png', dpi=150, bbox_inches='tight')
+
+'''
+Embed using t-SNE and MDS
+'''
+X = {}
+
+from sklearn.manifold import TSNE
+np.random.seed(2024)
+X['TSNE'] = TSNE(n_components=3, metric='precomputed', perplexity=5, init='random').fit_transform(M)
+
+from sklearn.manifold import MDS
+np.random.seed(2024)
+X['MDS'] = MDS(n_components=3, dissimilarity='precomputed').fit_transform(M)
+
+print('TSNE', end=' ')
+print('{:.3f}'.format(distortion(distance_matrix(X['TSNE'], X['TSNE']), M)))
+print('MDS', end=' ')
+print('{:.3f}'.format(distortion(distance_matrix(X['MDS'], X['MDS']), M)))

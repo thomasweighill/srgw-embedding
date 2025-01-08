@@ -97,7 +97,8 @@ def visualize_comparison2(partitions, coords, r, split_point=1000,
         zorder=1
     )
     ax3.set_xlim(-0.1, 1.1)
-    ax3.set_xticks([x/10 for x in range(11)])
+    ax3.set_xticks([x/5 for x in range(6)],)
+    ax3.tick_params(labelsize=25)
     
     #boundary heatmaps
     print('Plotting heat maps...')

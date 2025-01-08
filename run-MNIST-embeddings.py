@@ -6,6 +6,7 @@ from scipy.spatial import distance_matrix
 from PIL import Image 
 from tqdm import tqdm
 import pickle
+import math
 import os
 import time
 import sys
@@ -22,9 +23,9 @@ train, test, valid = mnist_loader.load_data()
 
 #adjust these lists
 R2_methods = ['TSNE', 'PCA', 'MDS', 'SRGW_R2'] #full list is ['TSNE', 'PCA', 'MDS', 'SRGW_R2']
-circle_methods = ['GD', 'SRGW', 'PCOH'] #['GD', 'SRGW', 'PCOH'] #full list is ['GD', 'SRGW', 'PCOH']
+circle_methods = ['GD', 'SRGW', 'PCOH'] #full list is ['GD', 'SRGW', 'PCOH']
 
-for digit in list(range(0,10)):
+for digit in range(10):
     np.random.seed(2024)
     print(digit, '\n------ \n')
     train_images = np.vstack([train[0],test[0],valid[0]])
@@ -90,7 +91,7 @@ for digit in list(range(0,10)):
             np.random.seed(2024)
             start_time = time.time()
             r['PCOH'], y['PCOH'], losses = circle_embedders.weighted_persistent_cohomology_coords(M)
-            X['PCOH'] = np.array(
+            X['PCOH'] = r['PCOH']*np.array(
                 [[np.cos(2*np.pi*t), np.sin(2*np.pi*t)] for t in y['PCOH']]
             )
             times['PCOH'] = time.time() - start_time   
@@ -99,7 +100,7 @@ for digit in list(range(0,10)):
             np.random.seed(2024)
             start_time = time.time()
             r['SRGW'], y['SRGW'], losses = circle_embedders.fit_to_circle_ot_start(M, tol=1e-4)
-            X['SRGW'] = np.array(
+            X['SRGW'] = r['SRGW']*np.array(
                 [[np.cos(2*np.pi*t), np.sin(2*np.pi*t)] for t in y['SRGW']]
             )
             times['SRGW'] = time.time() - start_time    
@@ -108,7 +109,7 @@ for digit in list(range(0,10)):
             np.random.seed(2024)
             start_time = time.time()
             r['GD'], y['GD'], losses = circle_embedders.fit_to_circle(M, verbose=False, gamma=0.01)
-            X['GD'] = np.array(
+            X['GD'] = r['GD']*np.array(
                 [[np.cos(2*np.pi*t), np.sin(2*np.pi*t)] for t in y['GD']]
             )
             times['GD'] = time.time() - start_time  
@@ -139,6 +140,7 @@ for digit in list(range(0,10)):
             c=newimages_labels, s=20, marker='x'
         )
         plt.gca().set_aspect(1)
+        plt.gca().tick_params(labelsize=20)
         plt.savefig('MNIST_figures/MNIST{}_{}.png'.format(digit, m), bbox_inches='tight', dpi=150)
         plt.close()
         
@@ -150,6 +152,7 @@ for digit in list(range(0,10)):
             c=newimages_labels, s=20, marker='x'
         )
         plt.gca().set_aspect(1)
+        plt.gca().tick_params(labelsize=20)
         plt.savefig('MNIST_figures/MNIST{}_{}.png'.format(digit, m), bbox_inches='tight', dpi=150)
         plt.close()
     
@@ -171,15 +174,27 @@ for digit in list(range(0,10)):
     for m in R2_methods:
         plt.scatter(
             newimages_labels, 
-            [np.arctan(x[1]/x[0])+int(x[0]<0)*np.pi for x in X[m]], c=newimages_labels, s=5
+            [math.degrees(math.atan2(x[1], x[0]))+180 for x in X[m]], c=newimages_labels, s=5
         )
+        plt.yticks([0,90,180,270, 360])
+        plt.xticks([0,90,180,270,360], rotation=90)
+        plt.ylim(-5,365)
+        plt.xlim(-5,365)
+        plt.gca().tick_params(labelsize=24)
+        plt.gca().set_aspect(1)
         plt.savefig('MNIST_figures/MNIST{}_scatter_{}.png'.format(digit,m), bbox_inches='tight', dpi=150)
         plt.close()
         
     for m in circle_methods:
         plt.scatter(
-            newimages_labels, 2*np.pi*np.array(y[m]), c=newimages_labels, s=5
+            newimages_labels, 360*np.array(y[m]), c=newimages_labels, s=5
         )
+        plt.yticks([0,90,180,270, 360])
+        plt.xticks([0,90,180,270,360], rotation=90)
+        plt.ylim(-5,365)
+        plt.xlim(-5,365)
+        plt.gca().tick_params(labelsize=24)
+        plt.gca().set_aspect(1)
         plt.savefig('MNIST_figures/MNIST{}_scatter_{}.png'.format(digit, m), bbox_inches='tight', dpi=150)
         plt.close()
 
